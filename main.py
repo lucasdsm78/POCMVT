@@ -31,6 +31,7 @@ fig.show()
 while 1:
     data = stream.read(CHUNK)
     dataInt = struct.unpack(str(CHUNK) + 'h', data)
+    print(dataInt)
     line.set_ydata(dataInt)
     fig.canvas.draw()
     fig.canvas.flush_events()
