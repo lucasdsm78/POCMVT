@@ -1,4 +1,5 @@
 import abjad
+
 from datetime import datetime
 from const import *
 import traceback
@@ -29,11 +30,45 @@ ex : "c4 r8 g8"
 
 ~ to mark a legato
 """
-def generate_score_from_lilypond_str(score_str = "c'8 c' d'4 c' f' e'2 c'8 c' d'4 c' g' f'2"):
-	voice_1 = abjad.Voice(score_str, name="Voice_1")
-	staff_1 = abjad.Staff([voice_1], name="Staff_1")
-	abjad.Markup(r"\Title: " + FILENAME)
-	abjad.show(staff_1, output_directory=("/tmp/"))
+def generate_score_from_lilypond_str(score_str = "c'8"):
+	generate_score_midi(score_str)
+	generate_score_pdf(score_str)
+
+
+def generate_score_pdf(score_str):
+	# old fashion way, but not that much customisable
+	#voice_1 = abjad.Voice(score_str, name="Voice_1")
+	#staff_1 = abjad.Staff([voice_1], name="Staff_1")
+	#abjad.show(staff_1, output_directory=("/tmp/"))
+
+	lilypond_file = abjad.LilyPondFile(["""\\version "2.14.2"
+	\\book{
+		\\header{
+			title = "%s"
+		}
+
+		\\score{
+			{
+				\\tempo 4=%d
+
+				%s
+			}
+		}
+	}""" % (FILENAME, TEMPO, score_str)])
+	abjad.show(lilypond_file, output_directory=("/tmp/"))
+
+def generate_score_midi(score_str):
+	lilypond_file = abjad.LilyPondFile(["""\\version "2.14.2"
+	\\score{
+		{
+			\\tempo 4=%d
+			%s
+		}
+		\\midi{ 
+		}
+	}""" % (TEMPO, score_str)])
+	abjad.show(lilypond_file, output_directory=("/tmp/"))
+
 
 def generate_score(freq_arr):
 	generate_score_from_lilypond_str(translate_frequences_to_lilypond_string(freq_arr))
@@ -56,6 +91,8 @@ def translate_frequences_to_lilypond_string(frequences_arr):
 			print("Error: ", err, traceback.format_exc())
 		i+=1
 	return score_str
+
+
 
 
 
