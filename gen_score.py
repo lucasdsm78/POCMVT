@@ -1,20 +1,18 @@
 import abjad
 from datetime import datetime
+from const import *
 
 
-NOW = str(datetime.now().strftime("%Y-%m-%d_%H:%M"))
-FILENAME = ("Score_"+NOW)
-
-MAP_RYHTM_NB=[[4, 1], [2, 2], [1, 4], [0.5, 8], [0.25, 16]] # first=value calculted, second= notation value for lilypond
-TEMPO = 60 # considered as a tempo for a black note
-
-
-def get_closest_rythm(duration):
-	return min(MAP_RYHTM_NB, key=lambda x:abs(x[0]-duration))
-
-def get_rythm(duration):
-	time_ratio = duration * TEMPO / 60
-	return get_closest_rythm(duration)[1]
+frequences = [
+(440, 0),
+(None, 400), 
+(220, 1000), 
+(440, 1230), 
+(440, 1500), 
+]
+# une fonction
+for item in frequences:
+	print(item, get_nearest_note(item[0]))
 
 
 """
@@ -38,16 +36,21 @@ ex : "c4 f8 g8"
 until the next number change, the rythm is guessed staying put
 ex : "c4 f8 g a b c" 
 
+to write a respiration, use r + same nb as for any other rythm
+ex : "c4 r8 g8"
+
+~ to mark a legato
 """
 def generate_score():
-	#string = "c'16 f' g' a' d' g' a' b' e' a' b' c'' f' b' c'' d''16"
 	#string = "c'8 f' g' a' d' g' a' b''8 e''4 a' b' c'' f' b' c'' d''4"
-	string = "c'4 c8 c''16 c'''"
+	#string = "c'4 c8 c''16 c'''"
+	string = "c'8 c' d'4 c' f' e'2 c'8 c' d'4 c' g' f'2"
 	voice_1 = abjad.Voice(string, name="Voice_1")
 	staff_1 = abjad.Staff([voice_1], name="Staff_1")
 	abjad.show(staff_1, output_directory=("/tmp/"))
 
 
-generate_score()
-print(get_rythm(.2))
+
+#generate_score()
+#print(get_rythm(.2))
 
