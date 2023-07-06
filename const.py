@@ -7,6 +7,7 @@ ARRAY_RYHTM_NB=[(4, 1), (2, 2), (1, 4), (0.5, 8), (0.25, 16)] # first=value calc
 TEMPO = 60 # considered as a tempo for a black note
 
 
+TRANSPOSITION = 3 # nb of offset octave, to place it well on part
 ARRAY_OCTAVA =[(1, 0), (2, 1), (4, 2),  (8, 3), (16, 4), (32, 5),  (64, 6), (128, 7), (256, 8)]
 
 ARRAY_FREQ_NOTE_0=[
@@ -36,7 +37,7 @@ def get_nearest_note(freq):
 		return (None, "r")
 	octava = get_nearest_octava(freq)
 	note = min(ARRAY_FREQ_NOTE_0, key=lambda x:abs(x[0] - (freq/octava[0]) ))
-	return (note[0], (note[1]+("'"*octava[1])))
+	return (note[0], (note[1]+("'" * max(octava[1]-TRANSPOSITION, 0))))
 
 
 # carefull, here we return only the rythm value, no need of the duration

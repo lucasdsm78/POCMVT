@@ -1,19 +1,7 @@
 import abjad
 from datetime import datetime
 from const import *
-
-
-frequences = [
-(440, 0),
-(None, 400), 
-(220, 1000), 
-(440, 1230), 
-(440, 1500), 
-]
-# une fonction
-for item in frequences:
-	print(item, get_nearest_note(item[0]))
-
+import traceback
 
 """
 notes:
@@ -41,16 +29,43 @@ ex : "c4 r8 g8"
 
 ~ to mark a legato
 """
-def generate_score():
-	#string = "c'8 f' g' a' d' g' a' b''8 e''4 a' b' c'' f' b' c'' d''4"
-	#string = "c'4 c8 c''16 c'''"
-	string = "c'8 c' d'4 c' f' e'2 c'8 c' d'4 c' g' f'2"
-	voice_1 = abjad.Voice(string, name="Voice_1")
+def generate_score(score_str = "c'8 c' d'4 c' f' e'2 c'8 c' d'4 c' g' f'2"):
+	voice_1 = abjad.Voice(score_str, name="Voice_1")
 	staff_1 = abjad.Staff([voice_1], name="Staff_1")
+	abjad.Markup(r"\Title: " + FILENAME)
 	abjad.show(staff_1, output_directory=("/tmp/"))
 
 
+def translate_frequences_to_lilypond_string(frequences_arr):
+	i = 0
+	score_str = ""
+	while i < len(frequences_arr):
+		try:
+			current_freq = frequences_arr[i]
+			note = get_nearest_note(current_freq[0])
+			if(i+1>= len(frequences_arr)):
+				score_str += " {note}{rythm}".format(**{"note":note[1], "rythm":"4"})
+			else:
+				rythm = get_rythm((frequences_arr[i+1][1] - current_freq[1])/1000)
+				score_str += " {note}{rythm}".format(**{"note":note[1], "rythm":rythm})
 
-#generate_score()
-#print(get_rythm(.2))
+		except Exception as err:
+			print("Error: ", err, traceback.format_exc())
+		i+=1
+	return score_str
 
+
+
+if( __name__ == "__main__" ):
+	fake_freq_arr = [
+	(260, 0),
+	(None, 270), 
+	(260, 500), 
+	(290, 1000), 
+	(260, 2000), 
+	(350, 3000), 
+	(330, 5000), 
+	]
+
+	generate_score(translate_frequences_to_lilypond_string(fake_freq_arr))
+	#generate_score()
