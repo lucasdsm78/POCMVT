@@ -29,11 +29,14 @@ ex : "c4 r8 g8"
 
 ~ to mark a legato
 """
-def generate_score(score_str = "c'8 c' d'4 c' f' e'2 c'8 c' d'4 c' g' f'2"):
+def generate_score_from_lilypond_str(score_str = "c'8 c' d'4 c' f' e'2 c'8 c' d'4 c' g' f'2"):
 	voice_1 = abjad.Voice(score_str, name="Voice_1")
 	staff_1 = abjad.Staff([voice_1], name="Staff_1")
 	abjad.Markup(r"\Title: " + FILENAME)
 	abjad.show(staff_1, output_directory=("/tmp/"))
+
+def generate_score(freq_arr):
+	generate_score_from_lilypond_str(translate_frequences_to_lilypond_string(freq_arr))
 
 
 def translate_frequences_to_lilypond_string(frequences_arr):
@@ -67,5 +70,5 @@ if( __name__ == "__main__" ):
 	(330, 5000), 
 	]
 
-	generate_score(translate_frequences_to_lilypond_string(fake_freq_arr))
+	generate_score(fake_freq_arr)
 	#generate_score()
