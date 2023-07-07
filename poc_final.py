@@ -11,9 +11,17 @@ CHUNK = 1024  # sample per block
 FORMAT = pyaudio.paInt16  # sample format
 CHANNELS = 1  # canal nb(mono)
 RATE = 44100  # sample frequency (Hz)
-THRESHOLD = 0.1  # intensity threshold, to detect notes
-RECORD_DURATION=10
+THRESHOLD = 100  # intensity threshold, to detect notes
+RECORD_DURATION=4
 
+def get_fundamental(intensities, threshold):
+    i=0
+    while i < len(intensities):
+        if (intensities[i] > threshold):
+            return i 
+        i+=1
+    return None
+    
 def process_audio(data):
     # convert data in numpy array
     audio_data = np.frombuffer(data, dtype=np.int16)
@@ -23,13 +31,16 @@ def process_audio(data):
 
     # get dominante frequency
     max_intensity_idx = np.argmax(intensities)
-    dominant_frequency = frequencies[max_intensity_idx]
+    max_intensity = intensities[max_intensity_idx]
 
-    # check if frequency is over intensity threshold 
-    if intensities[max_intensity_idx] > THRESHOLD:
-        return (dominant_frequency, intensities[max_intensity_idx])
+    dominante_id = get_fundamental(intensities.tolist(), max(THRESHOLD, max_intensity/10))
+#    print(dominante_id, max_intensity_idx, dominante_intensity, max_intensity)
 
-    return (None, 0)
+    if(dominante_id is None or intensities[dominante_id] < THRESHOLD ):
+        return (None, 0)
+    return (frequencies[dominante_id],intensities[dominante_id] )
+
+
 
 
 def capture_audio():
@@ -64,6 +75,7 @@ def capture_audio():
 
 
 def cleanage_frequency_array(freq_arr):
+    print(freq_arr)
     counter_freq = 0
     last_freq = (None, 0, 0)
     cleaned_arr = []
@@ -83,7 +95,7 @@ def cleanage_frequency_array(freq_arr):
 
         i+=1
     cleaned_arr.append(last_freq)
-
+    print("#######CLEANED", cleaned_arr)
     return cleaned_arr
 
 
