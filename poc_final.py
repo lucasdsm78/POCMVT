@@ -4,44 +4,30 @@ import time
 from scipy import signal
 from music21 import converter, instrument, note, stream, environment
 import os
+from gen_score import *
 
-# Configuration des paramètres
-CHUNK = 1024  # Nombre d'échantillons par bloc
-FORMAT = pyaudio.paInt16  # Format d'échantillonnage
-CHANNELS = 1  # Nombre de canaux (mono)
-RATE = 44100  # Fréquence d'échantillonnage (Hz)
-THRESHOLD = 0.1  # Seuil d'intensité pour détecter les notes
-NOTES = {
-    261.63: "C",
-    293.66: "D",
-    329.63: "E",
-    349.23: "F",
-    392.00: "G",
-    440.00: "A",
-    493.88: "B"
-}
-
-
-def get_pitch_frequency(freq):
-    closest_note = min(NOTES.keys(), key=lambda x: abs(x - freq))
-    return closest_note
-
+# setup
+CHUNK = 1024  # sample per block
+FORMAT = pyaudio.paInt16  # sample format
+CHANNELS = 1  # canal nb(mono)
+RATE = 44100  # sample frequency (Hz)
+THRESHOLD = 0.1  # intensity threshold, to detect notes
+RECORD_DURATION=10
 
 def process_audio(data):
-    # Convertir les données en un tableau numpy
+    # convert data in numpy array
     audio_data = np.frombuffer(data, dtype=np.int16)
 
-    # Appliquer la transformée de Fourier pour obtenir le spectre
+    # apply fourier formula to get a spectrum
     frequencies, intensities = signal.periodogram(audio_data, RATE)
 
-    # Trouver la fréquence dominante
+    # get dominante frequency
     max_intensity_idx = np.argmax(intensities)
     dominant_frequency = frequencies[max_intensity_idx]
 
-    # Vérifier si la fréquence est supérieure au seuil d'intensité
+    # check if frequency is over intensity threshold 
     if intensities[max_intensity_idx] > THRESHOLD:
-        pitch_frequency = get_pitch_frequency(dominant_frequency)
-        return pitch_frequency
+        return (dominant_frequency, intensities[max_intensity_idx])
 
     return None
 
@@ -58,55 +44,49 @@ def capture_audio():
 
     print("Enregistrement audio en cours...")
 
-    notes = []
+    notes_lily = []
     start_time = time.time()
 
     while True:
         data = stream.read(CHUNK)
         pitch = process_audio(data)
-
-        if pitch is not None:
-            timestamp = time.time() - start_time
-            note_name = NOTES[pitch]
-            note_obj = note.Note(note_name)
-            note_obj.duration = note.Duration(timestamp)
-            notes.append(note_obj)
+        notes_lily.append((pitch[0], round(time.time()*1000), pitch[1]))
 
         # Arrêter l'enregistrement après 10 secondes
-        if time.time() - start_time >= 10:
+        if time.time() - start_time >= RECORD_DURATION:
             break
 
     stream.stop_stream()
     stream.close()
     p.terminate()
 
-    return notes
+    return notes_lily
 
 
-def generate_midi(notes):
-    midi_stream = stream.Stream()
-    midi_stream.append(instrument.Piano())
+def cleanage_frequency_array(freq_arr):
+    counter_freq = 0
+    last_freq = (None, 0)
+    cleaned_arr = []
+    i = 0
+    while i< len(freq_arr):
+        current_freq = freq_arr[i]
+        if(last_freq[0] != current_freq[0]):
+            if counter_freq>5:
+                cleaned_arr.append(last_freq)
+            
+            last_freq = current_freq 
+            counter_freq = 0
+        else:
+            counter_freq +=1
 
-    for note_obj in notes:
-        midi_stream.append(note_obj)
+        i+=1
+    cleaned_arr.append(last_freq)
 
-    midi_stream.write("midi", "output.mid")
-
-
-def generate_sheet_music(notes):
-    sheet_music_stream = stream.Stream()
-
-    for note_obj in notes:
-        sheet_music_stream.append(note_obj)
-
-    sheet_music_stream.write('lily.pdf', fp='output.pdf')
+    return cleaned_arr
 
 
-# Capture de l'audio et traitement des notes
-captured_notes = capture_audio()
+if( __name__ == "__main__" ):
+    # captur audio and get frequency detected
+    captured_notes = capture_audio()
 
-# Génération du fichier MIDI
-generate_midi(captured_notes)
-
-# Génération de la partition au format PDF
-generate_sheet_music(captured_notes)
+    generate_score(cleanage_frequency_array(captured_notes))
