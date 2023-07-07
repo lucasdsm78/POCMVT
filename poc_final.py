@@ -75,7 +75,7 @@ def capture_audio():
 
 
 def cleanage_frequency_array(freq_arr):
-    print(freq_arr)
+    #print(freq_arr)
     counter_freq = 0
     last_freq = (None, 0, 0)
     cleaned_arr = []
@@ -95,7 +95,7 @@ def cleanage_frequency_array(freq_arr):
 
         i+=1
     cleaned_arr.append(last_freq)
-    print("#######CLEANED", cleaned_arr)
+    #print("#######CLEANED", cleaned_arr)
     return cleaned_arr
 
 
