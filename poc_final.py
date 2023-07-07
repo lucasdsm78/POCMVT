@@ -29,7 +29,7 @@ def process_audio(data):
     if intensities[max_intensity_idx] > THRESHOLD:
         return (dominant_frequency, intensities[max_intensity_idx])
 
-    return None
+    return (None, 0)
 
 
 def capture_audio():
@@ -65,12 +65,12 @@ def capture_audio():
 
 def cleanage_frequency_array(freq_arr):
     counter_freq = 0
-    last_freq = (None, 0)
+    last_freq = (None, 0, 0)
     cleaned_arr = []
     i = 0
     while i< len(freq_arr):
         current_freq = freq_arr[i]
-        if(last_freq[0] != current_freq[0]):
+        if(last_freq[0] != current_freq[0] or last_freq[2] < current_freq[2]):
             if counter_freq>5:
                 cleaned_arr.append(last_freq)
             
@@ -78,6 +78,8 @@ def cleanage_frequency_array(freq_arr):
             counter_freq = 0
         else:
             counter_freq +=1
+            last_freq = (last_freq[0], last_freq[1], current_freq[2])
+
 
         i+=1
     cleaned_arr.append(last_freq)
